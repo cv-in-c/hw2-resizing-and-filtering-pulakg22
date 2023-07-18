@@ -281,45 +281,51 @@ image make_gy_filter ()
 
 
 
-void feature_normalize (image im)
+void feature_normalize(image im)
 {
-    float min_value = get_pixel (im , 0 , 0 , 0);
-    float max_value = get_pixel (im , 0 , 0 , 0);
-
-    for (int c = 0 ; c < im.c ; c++)
+    float max = -1.0;
+    float min = INFINITY;
+    for (int x = 0 ; x < im.w ; x++)
     {
         for (int y = 0 ; y < im.h ; y++)
         {
-            for (int x = 0 ; x < im.w ; x++)
+            for (int c = 0 ; c < im.c ; c++)
             {
-                float value = get_pixel(im , x , y , c);
-                if (value < min_value) min_value = value;
-                if (value > max_value) max_value = value;
+                int i = x + y*im.w + c*im.w*im.h;
+                if (im.data[i] > max) max = im.data[i];
+                if (im.data[i] < min) min = im.data[i];
             }
         }
     }
-
-    float range = max_value - min_value;
-
-    if (!range) set_image(im , 0);
-    else
+    if (max - min)
     {
-        for (int c = 0 ; c < im.c ; c++)
+        for (int x = 0 ; x < im.w ; x++ )
         {
             for (int y = 0 ; y < im.h ; y++)
             {
-                for (int x = 0 ; x < im.w ; x++)
+                for (int c = 0 ; c < im.c ; c++)
                 {
-                    float value = get_pixel(im , x , y , c);
-                    float normalized_value = (value - min_value) / range;
-                    set_pixel(im , x , y , c , normalized_value);
+                    int i = x + y*im.w + c*im.w*im.h;
+                    im.data[i] = (im.data[i] - min) / (max - min);
+                }
+           }
+        }
+    }
+    else
+    {
+        for (int x = 0 ; x < im.w ; x++)
+        {
+            for (int y = 0 ; y < im.h ; y++)
+            {
+                for (int c = 0 ; c < im.c ; c++)
+                {
+                    int i = x + y*im.w + c*im.w*im.h;
+                    im.data[i] = 0;
                 }
             }
         }
     }
-
 }
-
 
 
 image *sobel_image (image im)
